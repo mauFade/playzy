@@ -38,13 +38,8 @@ func (r *UserRepository) Create(user *model.UserModel) error {
 	return nil
 }
 
-func (r *UserRepository) FindByEmail(email string) (*model.UserModel, error) {
-	query := "SELECT * FROM users WHERE email = ?"
-	row := r.db.QueryRow(query, email)
-
-	var user model.UserModel
-
-	if err := row.Scan(
+func (r *UserRepository) auxScan(row *sql.Row, user *model.UserModel) error {
+	return row.Scan(
 		user.GetID(),
 		user.GetName(),
 		user.GetEmail(),
@@ -55,7 +50,16 @@ func (r *UserRepository) FindByEmail(email string) (*model.UserModel, error) {
 		user.GetDeletedAt(),
 		user.GetUpdatedAt(),
 		user.GetCreatedAt(),
-	); err != nil {
+	)
+}
+
+func (r *UserRepository) FindByEmail(email string) (*model.UserModel, error) {
+	query := "SELECT * FROM users WHERE email = ?"
+	row := r.db.QueryRow(query, email)
+
+	var user model.UserModel
+
+	if err := r.auxScan(row, &user); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
