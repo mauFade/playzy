@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/mauFade/playzy/internal/model"
 )
@@ -35,4 +36,32 @@ func (r *UserRepository) Create(user *model.UserModel) error {
 	}
 
 	return nil
+}
+
+func (r *UserRepository) FindByEmail(email string) (*model.UserModel, error) {
+	query := "SELECT * FROM users WHERE email = ?"
+	row := r.db.QueryRow(query, email)
+
+	var user model.UserModel
+
+	if err := row.Scan(
+		user.GetID(),
+		user.GetName(),
+		user.GetEmail(),
+		user.GetPhone(),
+		user.GetGamertag(),
+		user.GetPassword(),
+		user.IsDeleted(),
+		user.GetDeletedAt(),
+		user.GetUpdatedAt(),
+		user.GetCreatedAt(),
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &user, nil
 }

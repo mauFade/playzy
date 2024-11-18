@@ -96,3 +96,15 @@ func (u *UserModel) IsDeleted() bool {
 func (u *UserModel) SetDeleted(deleted bool) {
 	u.Deleted = deleted
 }
+
+func (u *UserModel) GetDeletedAt() *time.Time {
+	return u.DeletedAt
+}
+
+func (u *UserModel) GetCreatedAt() time.Time {
+	return u.CreatedAt
+}
+
+func (u *UserModel) GetUpdatedAt() time.Time {
+	return u.UpdatedAt
+}
