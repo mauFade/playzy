@@ -38,7 +38,7 @@ func (m *MockUserRepository) Create(user *model.UserModel) error {
 	return args.Error(0)
 }
 
-func TestCreateUserUseCase_Execute_Success(t *testing.T) {
+func TestCreateUserUseCaseExecuteSuccess(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	useCase := user.NewCreateUserUseCase(mockRepo)
 
@@ -67,7 +67,7 @@ func TestCreateUserUseCase_Execute_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestCreateUserUseCase_Execute_EmailAlreadyExists(t *testing.T) {
+func TestCreateUserUseCaseExecuteEmailAlreadyExists(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	useCase := user.NewCreateUserUseCase(mockRepo)
 
@@ -97,6 +97,77 @@ func TestCreateUserUseCase_Execute_EmailAlreadyExists(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, user)
 	assert.EqualError(t, err, "this email is already in use")
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCreateUserUseCaseExecutePhoneAlreadyExists(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	useCase := user.NewCreateUserUseCase(mockRepo)
+
+	existingUser := &model.UserModel{
+		ID:        uuid.New(),
+		Name:      "Existing User",
+		Email:     "test@example.com",
+		Phone:     "1234567890",
+		Gamertag:  "gamer123",
+		Password:  "password123",
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	mockRepo.On("FindByEmail", "test@example.com").Return((*model.UserModel)(nil), nil)
+	mockRepo.On("FindByPhone", "1234567890").Return(existingUser, nil).Once()
+
+	request := &user.CreateUserRequest{
+		Name:     "John Doe",
+		Email:    "test@example.com",
+		Phone:    "1234567890",
+		Password: "password123",
+		Gamertag: "gamer999",
+	}
+
+	user, err := useCase.Execute(request)
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.EqualError(t, err, "this phone is already in use")
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCreateUserUseCaseExecuteGamertagAlreadyExists(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	useCase := user.NewCreateUserUseCase(mockRepo)
+
+	existingUser := &model.UserModel{
+		ID:        uuid.New(),
+		Name:      "Existing User",
+		Email:     "test@example.com",
+		Phone:     "1234567890",
+		Gamertag:  "gamer123",
+		Password:  "password123",
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	mockRepo.On("FindByEmail", "test@example.com").Return((*model.UserModel)(nil), nil)
+	mockRepo.On("FindByPhone", "9876543210").Return((*model.UserModel)(nil), nil)
+	mockRepo.On("FindByGamertag", "gamer123").Return(existingUser, nil).Once()
+
+	request := &user.CreateUserRequest{
+		Name:     "John Doe",
+		Email:    "test@example.com",
+		Phone:    "9876543210",
+		Password: "password123",
+		Gamertag: "gamer123",
+	}
+
+	user, err := useCase.Execute(request)
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.EqualError(t, err, "this gamertag is already in use")
 
 	mockRepo.AssertExpectations(t)
 }
