@@ -7,16 +7,16 @@ import (
 )
 
 type UserModel struct {
-	ID        uuid.UUID  // type:uuid
-	Name      string     // type:varchar
-	Email     string     // type:varchar
-	Phone     string     // type:varchar
-	Password  string     // type:varchar
-	Gamertag  string     // type:varchar
-	Deleted   bool       // type:bool
-	DeletedAt *time.Time // type:timestamp
-	UpdatedAt time.Time  // type:timestamp
-	CreatedAt time.Time  // type:timestamp
+	ID        uuid.UUID  `json:"id"`         // type:uuid
+	Name      string     `json:"name"`       // type:varchar
+	Email     string     `json:"email"`      // type:varchar
+	Phone     string     `json:"phone"`      // type:varchar
+	Password  string     `json:"-"`          // type:varchar
+	Gamertag  string     `json:"gamertag"`   // type:varchar
+	Deleted   bool       `json:"is_deleted"` // type:bool
+	DeletedAt *time.Time `json:"deleted_at"` // type:timestamp
+	UpdatedAt time.Time  `json:"updated_at"` // type:timestamp
+	CreatedAt time.Time  `json:"created_at"` // type:timestamp
 }
 
 func NewUserModel(

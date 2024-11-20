@@ -3,7 +3,6 @@ package handler
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/mauFade/playzy/internal/repository"
@@ -33,13 +32,14 @@ func (h *CreateUserHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
-	if err := decoder.Decode(&req); err != nil {
-		http.Error(w, fmt.Sprintf("Invalid request body: %v", err), http.StatusBadRequest)
-		return
-	}
+	w.Header().Set("Content-Type", "application/json")
+
+	decoder.Decode(&req)
 
 	if req.Name == "" || req.Email == "" || req.Password == "" || req.Gamertag == "" || req.Phone == "" {
-		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"message": "missing required fields"})
+
 		return
 	}
 
@@ -53,5 +53,16 @@ func (h *CreateUserHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		Password: req.Password,
 		Gamertag: req.Gamertag,
 	})
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"message": err.Error()})
+
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(res)
 
 }

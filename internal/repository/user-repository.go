@@ -18,9 +18,9 @@ func NewUserRepository(d *sql.DB) *UserRepository {
 }
 
 func (r *UserRepository) Create(user *model.UserModel) error {
-	query := `INSERT INTO users values 
+	query := `INSERT INTO users 
 	(id, name, email, phone, gamertag, password, is_deleted, deleted_at, updated_at, created_at) 
-	VALUES (?, ?, ?, ?, ?, ?, 'false', NULL, NOW(), NOW())`
+	VALUES (?, ?, ?, ?, ?, ?, 'false', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
 
 	_, err := r.db.Exec(query,
 		user.GetID(),
@@ -38,28 +38,24 @@ func (r *UserRepository) Create(user *model.UserModel) error {
 	return nil
 }
 
-func (r *UserRepository) auxScan(row *sql.Row, user *model.UserModel) error {
-	return row.Scan(
-		user.GetID(),
-		user.GetName(),
-		user.GetEmail(),
-		user.GetPhone(),
-		user.GetGamertag(),
-		user.GetPassword(),
-		user.IsDeleted(),
-		user.GetDeletedAt(),
-		user.GetUpdatedAt(),
-		user.GetCreatedAt(),
-	)
-}
-
 func (r *UserRepository) FindByEmail(email string) (*model.UserModel, error) {
 	query := "SELECT * FROM users WHERE email = ?"
 	row := r.db.QueryRow(query, email)
 
 	var user model.UserModel
 
-	if err := r.auxScan(row, &user); err != nil {
+	if err := row.Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Phone,
+		&user.Gamertag,
+		&user.Password,
+		&user.Deleted,
+		&user.DeletedAt,
+		&user.UpdatedAt,
+		&user.CreatedAt,
+	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
