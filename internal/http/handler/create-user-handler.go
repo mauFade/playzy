@@ -38,7 +38,7 @@ func (h *CreateUserHandler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	if req.Name == "" || req.Email == "" || req.Password == "" || req.Gamertag == "" || req.Phone == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"message": "missing required fields"})
+		json.NewEncoder(w).Encode(map[string]string{"message": "missing required fields fdp"})
 
 		return
 	}
