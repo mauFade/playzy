@@ -10,7 +10,7 @@ import (
 )
 
 type CreateUserUseCase struct {
-	userRepository *repository.UserRepository
+	userRepository repository.UserRepositoryInterface
 }
 
 type CreateUserRequest struct {
@@ -21,21 +21,41 @@ type CreateUserRequest struct {
 	Gamertag string
 }
 
-func NewCreateUserUseCase(r *repository.UserRepository) *CreateUserUseCase {
+func NewCreateUserUseCase(r repository.UserRepositoryInterface) *CreateUserUseCase {
 	return &CreateUserUseCase{
 		userRepository: r,
 	}
 }
 
 func (uc *CreateUserUseCase) Execute(data *CreateUserRequest) (*model.UserModel, error) {
-	userExist, err := uc.userRepository.FindByEmail(data.Email)
+	emailExists, err := uc.userRepository.FindByEmail(data.Email)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if userExist != nil {
+	if emailExists != nil {
 		return nil, errors.New("this email is already in use")
+	}
+
+	phoneExists, err := uc.userRepository.FindByPhone(data.Phone)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if phoneExists != nil {
+		return nil, errors.New("this phone is already in use")
+	}
+
+	gamertagExists, err := uc.userRepository.FindByGamertag(data.Gamertag)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if gamertagExists != nil {
+		return nil, errors.New("this gamertag is already in use")
 	}
 
 	user := model.NewUserModel(

@@ -19,6 +19,11 @@ type UserModel struct {
 	CreatedAt time.Time  `json:"created_at"` // type:timestamp
 }
 
+// Error implements error.
+func (u *UserModel) Error() string {
+	panic("unimplemented")
+}
+
 func NewUserModel(
 	id uuid.UUID,
 	name,

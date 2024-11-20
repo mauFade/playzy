@@ -7,6 +7,13 @@ import (
 	"github.com/mauFade/playzy/internal/model"
 )
 
+type UserRepositoryInterface interface {
+	FindByEmail(email string) (*model.UserModel, error)
+	FindByPhone(phone string) (*model.UserModel, error)
+	FindByGamertag(gamertag string) (*model.UserModel, error)
+	Create(user *model.UserModel) error
+}
+
 type UserRepository struct {
 	db *sql.DB
 }
@@ -41,6 +48,62 @@ func (r *UserRepository) Create(user *model.UserModel) error {
 func (r *UserRepository) FindByEmail(email string) (*model.UserModel, error) {
 	query := "SELECT * FROM users WHERE email = ?"
 	row := r.db.QueryRow(query, email)
+
+	var user model.UserModel
+
+	if err := row.Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Phone,
+		&user.Gamertag,
+		&user.Password,
+		&user.Deleted,
+		&user.DeletedAt,
+		&user.UpdatedAt,
+		&user.CreatedAt,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepository) FindByGamertag(gamertag string) (*model.UserModel, error) {
+	query := "SELECT * FROM users WHERE gamertag = ?"
+	row := r.db.QueryRow(query, gamertag)
+
+	var user model.UserModel
+
+	if err := row.Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Phone,
+		&user.Gamertag,
+		&user.Password,
+		&user.Deleted,
+		&user.DeletedAt,
+		&user.UpdatedAt,
+		&user.CreatedAt,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepository) FindByPhone(phone string) (*model.UserModel, error) {
+	query := "SELECT * FROM users WHERE phone = ?"
+	row := r.db.QueryRow(query, phone)
 
 	var user model.UserModel
 
