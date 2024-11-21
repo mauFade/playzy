@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserModel struct {
@@ -43,6 +44,14 @@ func NewUserModel(
 		UpdatedAt: updatedAt,
 		CreatedAt: createdAt,
 	}
+}
+
+func (u *UserModel) ComparePasswords(password string) error {
+	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (u *UserModel) GetID() uuid.UUID {

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/mauFade/playzy/internal/model"
 	"github.com/mauFade/playzy/internal/repository"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type CreateUserUseCase struct {
@@ -58,13 +59,19 @@ func (uc *CreateUserUseCase) Execute(data *CreateUserRequest) (*model.UserModel,
 		return nil, errors.New("this gamertag is already in use")
 	}
 
+	hash, err := bcrypt.GenerateFromPassword([]byte(data.Password), 6)
+
+	if err != nil {
+		return nil, err
+	}
+
 	user := model.NewUserModel(
 		uuid.New(),
 		data.Name,
 		data.Email,
 		data.Phone,
 		data.Gamertag,
-		data.Password,
+		string(hash),
 		false,
 		nil,
 		time.Now(),
