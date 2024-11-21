@@ -22,6 +22,12 @@ type authenticateResponse struct {
 	Token  string `json:"token"`
 }
 
+func NewAuthenticateUserService(r repository.UserRepositoryInterface) *AuthenticateUserService {
+	return &AuthenticateUserService{
+		userRepository: r,
+	}
+}
+
 func (uc *AuthenticateUserService) Execute(data *AuthenticateRequest) (*authenticateResponse, error) {
 	user, err := uc.userRepository.FindByEmail(data.Email)
 
