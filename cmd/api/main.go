@@ -5,9 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/mauFade/playzy/internal/http/handler"
-
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/mauFade/playzy/internal/http/routes"
 )
 
 func main() {
@@ -18,11 +17,7 @@ func main() {
 	}
 	defer db.Close()
 
-	createUserHandler := handler.NewCreateUserHandler(db)
-
-	router := http.NewServeMux()
-
-	router.HandleFunc("POST /users", createUserHandler.Handle)
+	router := routes.Router(db)
 
 	log.Println("Server is running on port 8080...")
 	log.Fatal(http.ListenAndServe(":8080", router))

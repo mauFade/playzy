@@ -71,7 +71,11 @@ func (uc *CreateUserUseCase) Execute(data *CreateUserRequest) (*model.UserModel,
 		time.Now(),
 	)
 
-	uc.userRepository.Create(user)
+	err = uc.userRepository.Create(user)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return user, nil
 }
