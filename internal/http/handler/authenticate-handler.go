@@ -9,52 +9,44 @@ import (
 	"github.com/mauFade/playzy/internal/usecase/user"
 )
 
-type createUserPayload struct {
-	Name     string `json:"name"`
+type authenticatePayload struct {
 	Email    string `json:"email"`
-	Phone    string `json:"phone"`
 	Password string `json:"password"`
-	Gamertag string `json:"gamertag"`
 }
 
-type CreateUserHandler struct {
+type AuthenticateUserHandler struct {
 	db *sql.DB
 }
 
-func NewCreateUserHandler(d *sql.DB) *CreateUserHandler {
-	return &CreateUserHandler{
+func NewAuthenticateUserHandler(d *sql.DB) *AuthenticateUserHandler {
+	return &AuthenticateUserHandler{
 		db: d,
 	}
 }
 
-func (h *CreateUserHandler) Handle(w http.ResponseWriter, r *http.Request) {
-	var req createUserPayload
+func (h *AuthenticateUserHandler) Handle(w http.ResponseWriter, r *http.Request) {
+	var req authenticatePayload
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
 	w.Header().Set("Content-Type", "application/json")
 
-	decoder.Decode(&req)
-
-	if req.Name == "" || req.Email == "" || req.Password == "" || req.Gamertag == "" || req.Phone == "" {
+	if req.Email == "" || req.Password == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{"message": "missing required fields"})
 
 		return
 	}
 
-	repository := repository.NewUserRepository(h.db)
-	usecase := user.NewCreateUserUseCase(repository)
+	usecase := user.NewAuthenticateUserUseCase(repository.NewUserRepository(h.db))
 
-	res, err := usecase.Execute(&user.CreateUserRequest{
-		Name:     req.Name,
+	res, err := usecase.Execute(&user.AuthenticateRequest{
 		Email:    req.Email,
-		Phone:    req.Phone,
 		Password: req.Password,
-		Gamertag: req.Gamertag,
 	})
 
 	if err != nil {
+
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{"message": err.Error()})
 

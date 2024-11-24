@@ -41,7 +41,7 @@ func (m *MockAuthUserRepository) Create(user *model.UserModel) error {
 
 func TestAuthenticateUserUseCaseExecuteSuccess(t *testing.T) {
 	mockRepo := new(MockAuthUserRepository)
-	useCase := user.NewAuthenticateUserService(mockRepo)
+	useCase := user.NewAuthenticateUserUseCase(mockRepo)
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte("password123"), 6)
 

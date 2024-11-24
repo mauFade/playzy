@@ -8,7 +8,7 @@ import (
 	"github.com/mauFade/playzy/internal/repository"
 )
 
-type AuthenticateUserService struct {
+type AuthenticateUserUseCase struct {
 	userRepository repository.UserRepositoryInterface
 }
 
@@ -22,13 +22,13 @@ type authenticateResponse struct {
 	Token  string `json:"token"`
 }
 
-func NewAuthenticateUserService(r repository.UserRepositoryInterface) *AuthenticateUserService {
-	return &AuthenticateUserService{
+func NewAuthenticateUserUseCase(r repository.UserRepositoryInterface) *AuthenticateUserUseCase {
+	return &AuthenticateUserUseCase{
 		userRepository: r,
 	}
 }
 
-func (uc *AuthenticateUserService) Execute(data *AuthenticateRequest) (*authenticateResponse, error) {
+func (uc *AuthenticateUserUseCase) Execute(data *AuthenticateRequest) (*authenticateResponse, error) {
 	user, err := uc.userRepository.FindByEmail(data.Email)
 
 	if err != nil {
