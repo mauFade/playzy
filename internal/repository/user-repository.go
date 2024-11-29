@@ -8,6 +8,7 @@ import (
 )
 
 type UserRepositoryInterface interface {
+	FindByID(id string) (*model.UserModel, error)
 	FindByEmail(email string) (*model.UserModel, error)
 	FindByPhone(phone string) (*model.UserModel, error)
 	FindByGamertag(gamertag string) (*model.UserModel, error)
@@ -43,6 +44,34 @@ func (r *UserRepository) Create(user *model.UserModel) error {
 	}
 
 	return nil
+}
+
+func (r *UserRepository) FindByID(id string) (*model.UserModel, error) {
+	query := "SELECT * FROM users WHERE id = ?"
+	row := r.db.QueryRow(query, id)
+
+	var user model.UserModel
+
+	if err := row.Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Phone,
+		&user.Password,
+		&user.Gamertag,
+		&user.Deleted,
+		&user.DeletedAt,
+		&user.UpdatedAt,
+		&user.CreatedAt,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &user, nil
 }
 
 func (r *UserRepository) FindByEmail(email string) (*model.UserModel, error) {
@@ -84,8 +113,8 @@ func (r *UserRepository) FindByGamertag(gamertag string) (*model.UserModel, erro
 		&user.Name,
 		&user.Email,
 		&user.Phone,
-		&user.Gamertag,
 		&user.Password,
+		&user.Gamertag,
 		&user.Deleted,
 		&user.DeletedAt,
 		&user.UpdatedAt,

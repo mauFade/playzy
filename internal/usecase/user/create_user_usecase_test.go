@@ -33,6 +33,12 @@ func (m *MockUserRepository) FindByGamertag(gamertag string) (*model.UserModel, 
 	return args.Get(0).(*model.UserModel), args.Error(1)
 }
 
+func (m *MockUserRepository) FindByID(id string) (*model.UserModel, error) {
+	args := m.Called(id)
+
+	return args.Get(0).(*model.UserModel), args.Error(1)
+}
+
 func (m *MockUserRepository) Create(user *model.UserModel) error {
 	args := m.Called(user)
 	return args.Error(0)

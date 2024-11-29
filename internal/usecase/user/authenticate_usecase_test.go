@@ -34,6 +34,12 @@ func (m *MockAuthUserRepository) FindByGamertag(gamertag string) (*model.UserMod
 	return args.Get(0).(*model.UserModel), args.Error(1)
 }
 
+func (m *MockAuthUserRepository) FindByID(id string) (*model.UserModel, error) {
+	args := m.Called(id)
+
+	return args.Get(0).(*model.UserModel), args.Error(1)
+}
+
 func (m *MockAuthUserRepository) Create(user *model.UserModel) error {
 	args := m.Called(user)
 	return args.Error(0)
