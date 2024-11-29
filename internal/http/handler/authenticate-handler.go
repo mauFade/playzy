@@ -31,6 +31,8 @@ func (h *AuthenticateUserHandler) Handle(w http.ResponseWriter, r *http.Request)
 
 	w.Header().Set("Content-Type", "application/json")
 
+	decoder.Decode(&req)
+
 	if req.Email == "" || req.Password == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{"message": "missing required fields"})
