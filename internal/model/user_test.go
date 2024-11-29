@@ -35,8 +35,7 @@ func TestNewUserModel(t *testing.T) {
 	assert.WithinDuration(t, createdAt, user.GetCreatedAt(), time.Second)
 }
 
-func TestSettersAndGetters(t *testing.T) {
-
+func TestUserSettersAndGetters(t *testing.T) {
 	user := &model.UserModel{}
 
 	user.SetName("Jane Doe")

@@ -15,7 +15,7 @@ type UserModel struct {
 	Password  string     `json:"-"`          // type:varchar
 	Gamertag  string     `json:"gamertag"`   // type:varchar
 	Deleted   bool       `json:"is_deleted"` // type:bool
-	DeletedAt *time.Time `json:"deleted_at"` // type:timestamp
+	DeletedAt *time.Time `json:"deleted_at"` // type:timestamp nullable:true
 	UpdatedAt time.Time  `json:"updated_at"` // type:timestamp
 	CreatedAt time.Time  `json:"created_at"` // type:timestamp
 }
