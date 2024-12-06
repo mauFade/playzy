@@ -27,6 +27,12 @@ func (m *MockCreateSessionRepository) FindByID(id uuid.UUID) (*model.SessionMode
 	return args.Get(0).(*model.SessionModel), args.Error(1)
 }
 
+func (m *MockCreateSessionRepository) FindAvailable(page int) ([]model.SessionModel, error) {
+	args := m.Called(page)
+
+	return args.Get(0).([]model.SessionModel), args.Error(1)
+}
+
 type MockSessionUserRepository struct {
 	mock.Mock
 }

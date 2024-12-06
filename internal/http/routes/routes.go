@@ -24,6 +24,7 @@ func Router(db *sql.DB) *http.ServeMux {
 	authHandler := handler.NewAuthenticateUserHandler(db)
 
 	createSessionHandler := handler.NewCreateSessionHandler(db)
+	listSessionsHanlder := handler.NewListAvailableSessionsHandler(db)
 
 	router := http.NewServeMux()
 
@@ -31,6 +32,7 @@ func Router(db *sql.DB) *http.ServeMux {
 	router.HandleFunc("POST /auth", middleware.LoggerMiddleware(authHandler.Handle))
 
 	router.HandleFunc("POST /sessions", CommonMiddlewares(createSessionHandler.Handle))
+	router.HandleFunc("GET /sessions", CommonMiddlewares(listSessionsHanlder.Handle))
 
 	return router
 }

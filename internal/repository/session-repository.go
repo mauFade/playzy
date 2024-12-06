@@ -11,6 +11,7 @@ import (
 type SessionRepositoryInterface interface {
 	Create(s *model.SessionModel) error
 	FindByID(id uuid.UUID) (*model.SessionModel, error)
+	FindAvailable(page int) ([]model.SessionModel, error)
 }
 
 type SessionRepository struct {
@@ -70,4 +71,30 @@ func (r *SessionRepository) FindByID(id uuid.UUID) (*model.SessionModel, error) 
 	}
 
 	return &session, nil
+}
+
+func (r *SessionRepository) FindAvailable(page int) ([]model.SessionModel, error) {
+	query := "SELECT * FROM sessions LIMIT 20 OFFSET ($1 - 1) * 20"
+
+	rows, err := r.db.Query(query, page)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var sessions []model.SessionModel
+
+	for rows.Next() {
+		var s model.SessionModel
+
+		err := rows.Scan(&s.ID, &s.Game, &s.UserID, &s.Objective, &s.Rank, &s.IsRanked, &s.CreatedAt, &s.UpdatedAt)
+
+		if err != nil {
+			return nil, err
+		}
+
+		sessions = append(sessions, s)
+	}
+
+	return sessions, nil
 }
