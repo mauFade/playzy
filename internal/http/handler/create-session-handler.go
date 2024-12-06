@@ -3,6 +3,8 @@ package handler
 import (
 	"database/sql"
 	"net/http"
+
+	"github.com/mauFade/playzy/internal/constants"
 )
 
 type CreateSessionHandler struct {
@@ -16,7 +18,7 @@ func NewCreateSessionHandler(d *sql.DB) *CreateSessionHandler {
 }
 
 func (h *CreateSessionHandler) Handle(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("userID").(string)
+	userID := r.Context().Value(constants.UserKey).(string)
 
 	w.Write([]byte(userID))
 }

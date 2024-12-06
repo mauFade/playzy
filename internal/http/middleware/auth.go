@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/mauFade/playzy/internal/constants"
 )
 
 func EnsureAuthenticatedMiddleware(next http.HandlerFunc) http.HandlerFunc {
@@ -38,19 +39,17 @@ func EnsureAuthenticatedMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		claims, tokenClaimsOk := token.Claims.(jwt.MapClaims)
 
-		fmt.Println(tokenClaimsOk, token.Valid)
-
 		if tokenClaimsOk && token.Valid {
 			userID, ok := claims["userID"].(string)
 
 			if !ok {
-				http.Error(w, "Invalid userID in token", http.StatusUnauthorized)
+				http.Error(w, "Invalid userID type in token", http.StatusUnauthorized)
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), "userId", userID)
-			r = r.WithContext(ctx)
-			next(w, r)
+			ctx := context.WithValue(r.Context(), constants.UserKey, userID)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
 			http.Error(w, "Invalid token claims", http.StatusUnauthorized)
 		}

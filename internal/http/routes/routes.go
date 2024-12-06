@@ -16,10 +16,10 @@ func Router(db *sql.DB) *http.ServeMux {
 
 	router := http.NewServeMux()
 
-	router.HandleFunc("POST /users", createUserHandler.Handle)
-	router.HandleFunc("POST /auth", authHandler.Handle)
+	router.HandleFunc("POST /users", middleware.LoggerMiddleware(createUserHandler.Handle))
+	router.HandleFunc("POST /auth", middleware.LoggerMiddleware(authHandler.Handle))
 
-	router.HandleFunc("POST /sessions", middleware.EnsureAuthenticatedMiddleware(createSessionHandler.Handle))
+	router.HandleFunc("POST /sessions", middleware.LoggerMiddleware(middleware.EnsureAuthenticatedMiddleware(createSessionHandler.Handle)))
 
 	return router
 }
