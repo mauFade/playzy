@@ -66,7 +66,7 @@ func TestFindByEmail(t *testing.T) {
 
 	user := model.NewUserModel(id, name, email, phone, gamertag, password, deleted, deletedAt, updatedAt, createdAt)
 
-	mock.ExpectQuery("SELECT \\* FROM users WHERE email = ?").
+	mock.ExpectQuery("SELECT \\* FROM users WHERE email = $1").
 		WithArgs(email).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "email", "phone", "gamertag", "password", "is_deleted", "deleted_at", "updated_at", "created_at"}).
 			AddRow(user.GetID(), user.GetName(), user.GetEmail(), user.GetPhone(), user.GetGamertag(), user.GetPassword(), user.IsDeleted(), nil, user.GetUpdatedAt(), user.GetCreatedAt()))
@@ -100,7 +100,7 @@ func TestFindByPhone(t *testing.T) {
 
 	user := model.NewUserModel(id, name, email, phone, gamertag, password, deleted, deletedAt, updatedAt, createdAt)
 
-	mock.ExpectQuery("SELECT \\* FROM users WHERE phone = ?").
+	mock.ExpectQuery("SELECT \\* FROM users WHERE phone = $1").
 		WithArgs(phone).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "email", "phone", "gamertag", "password", "is_deleted", "deleted_at", "updated_at", "created_at"}).
 			AddRow(user.GetID(), user.GetName(), user.GetEmail(), user.GetPhone(), user.GetGamertag(), user.GetPassword(), user.IsDeleted(), nil, user.GetUpdatedAt(), user.GetCreatedAt()))
@@ -134,7 +134,7 @@ func TestFindByGamertag(t *testing.T) {
 
 	user := model.NewUserModel(id, name, email, phone, gamertag, password, deleted, deletedAt, updatedAt, createdAt)
 
-	mock.ExpectQuery("SELECT \\* FROM users WHERE gamertag = ?").
+	mock.ExpectQuery("SELECT \\* FROM users WHERE gamertag = $1").
 		WithArgs(gamertag).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "email", "phone", "gamertag", "password", "is_deleted", "deleted_at", "updated_at", "created_at"}).
 			AddRow(user.GetID(), user.GetName(), user.GetEmail(), user.GetPhone(), user.GetGamertag(), user.GetPassword(), user.IsDeleted(), nil, user.GetUpdatedAt(), user.GetCreatedAt()))
@@ -157,7 +157,7 @@ func TestFindByEmailNotFound(t *testing.T) {
 
 	email := "nonexistent@example.com"
 
-	mock.ExpectQuery("SELECT \\* FROM users WHERE email = ?").
+	mock.ExpectQuery("SELECT \\* FROM users WHERE email = $1").
 		WithArgs(email).
 		WillReturnError(sql.ErrNoRows)
 

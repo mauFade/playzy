@@ -26,7 +26,7 @@ func NewSessionRepository(d *sql.DB) *SessionRepository {
 func (r *SessionRepository) Create(s *model.SessionModel) error {
 	query := `INSERT INTO sessions
 	(id, game, user_id, objective, rank, is_ranked, updated_at, created_at)
-	VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	`
 
 	_, err := r.db.Exec(query,
@@ -46,7 +46,7 @@ func (r *SessionRepository) Create(s *model.SessionModel) error {
 }
 
 func (r *SessionRepository) FindByID(id uuid.UUID) (*model.SessionModel, error) {
-	query := `SELECT * FROM sessions WHERE id = ?`
+	query := `SELECT * FROM sessions WHERE id = $1`
 
 	res := r.db.QueryRow(query, id.String())
 

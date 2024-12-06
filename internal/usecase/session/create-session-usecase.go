@@ -11,7 +11,7 @@ import (
 
 type CreateSessionUseCase struct {
 	sr repository.SessionRepositoryInterface
-	ur repository.UserRepository
+	ur repository.UserRepositoryInterface
 }
 
 type CreateSessionRequest struct {
@@ -22,7 +22,7 @@ type CreateSessionRequest struct {
 	IsRanked  bool
 }
 
-func NewCreateSessionUseCase(r repository.SessionRepositoryInterface, u repository.UserRepository) *CreateSessionUseCase {
+func NewCreateSessionUseCase(r repository.SessionRepositoryInterface, u repository.UserRepositoryInterface) *CreateSessionUseCase {
 	return &CreateSessionUseCase{
 		sr: r,
 		ur: u,
@@ -40,13 +40,19 @@ func (uc *CreateSessionUseCase) Execute(data *CreateSessionRequest) (*model.Sess
 		return nil, errors.New("user not found with this id")
 	}
 
+	var isRanked = true
+
+	if data.Rank == nil {
+		isRanked = false
+	}
+
 	session := model.NewSessionModel(
 		uuid.New(),
 		user.GetID(),
 		data.Game,
 		data.Objective,
 		data.Rank,
-		data.IsRanked,
+		isRanked,
 		time.Now(),
 		time.Now(),
 	)
