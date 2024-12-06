@@ -9,10 +9,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type contextKey string
-
-const userIDKey contextKey = "userid"
-
 func EnsureAuthenticatedMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
@@ -40,7 +36,11 @@ func EnsureAuthenticatedMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		claims, tokenClaimsOk := token.Claims.(jwt.MapClaims)
+
+		fmt.Println(tokenClaimsOk, token.Valid)
+
+		if tokenClaimsOk && token.Valid {
 			userID, ok := claims["userID"].(string)
 
 			if !ok {
@@ -48,7 +48,7 @@ func EnsureAuthenticatedMiddleware(next http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), userIDKey, userID)
+			ctx := context.WithValue(r.Context(), "userId", userID)
 			r = r.WithContext(ctx)
 			next(w, r)
 		} else {

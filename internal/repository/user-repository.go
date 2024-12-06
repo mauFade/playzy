@@ -28,7 +28,7 @@ func NewUserRepository(d *sql.DB) *UserRepository {
 func (r *UserRepository) Create(user *model.UserModel) error {
 	query := `INSERT INTO users 
 	(id, name, email, phone, gamertag, password, is_deleted, deleted_at, updated_at, created_at) 
-	VALUES (?, ?, ?, ?, ?, ?, 'false', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+	VALUES ($1, $2, $3, $4, $5, $6, 'false', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
 
 	_, err := r.db.Exec(query,
 		user.GetID(),
@@ -47,7 +47,7 @@ func (r *UserRepository) Create(user *model.UserModel) error {
 }
 
 func (r *UserRepository) FindByID(id string) (*model.UserModel, error) {
-	query := "SELECT * FROM users WHERE id = ?"
+	query := "SELECT * FROM users WHERE id = $1"
 	row := r.db.QueryRow(query, id)
 
 	var user model.UserModel
@@ -75,7 +75,7 @@ func (r *UserRepository) FindByID(id string) (*model.UserModel, error) {
 }
 
 func (r *UserRepository) FindByEmail(email string) (*model.UserModel, error) {
-	query := "SELECT * FROM users WHERE email = ?"
+	query := "SELECT * FROM users WHERE email = $1"
 	row := r.db.QueryRow(query, email)
 
 	var user model.UserModel
@@ -103,7 +103,7 @@ func (r *UserRepository) FindByEmail(email string) (*model.UserModel, error) {
 }
 
 func (r *UserRepository) FindByGamertag(gamertag string) (*model.UserModel, error) {
-	query := "SELECT * FROM users WHERE gamertag = ?"
+	query := "SELECT * FROM users WHERE gamertag = $1"
 	row := r.db.QueryRow(query, gamertag)
 
 	var user model.UserModel
@@ -131,7 +131,7 @@ func (r *UserRepository) FindByGamertag(gamertag string) (*model.UserModel, erro
 }
 
 func (r *UserRepository) FindByPhone(phone string) (*model.UserModel, error) {
-	query := "SELECT * FROM users WHERE phone = ?"
+	query := "SELECT * FROM users WHERE phone = $1"
 	row := r.db.QueryRow(query, phone)
 
 	var user model.UserModel

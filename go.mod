@@ -4,9 +4,9 @@ go 1.23.2
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.6.0
-	github.com/mattn/go-sqlite3 v1.14.24
+	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.10.9
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.29.0
 )
