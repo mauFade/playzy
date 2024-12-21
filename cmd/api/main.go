@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/mauFade/playzy/internal/http/routes"
+	"github.com/rs/cors"
 )
 
 func init() {
@@ -40,7 +41,15 @@ func main() {
 
 	router := routes.Router(db)
 
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowCredentials: true,
+		Debug:            true,
+	})
+
+	handler := c.Handler(router)
+
 	log.Println("Server is running on port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":8080", handler))
 
 }
