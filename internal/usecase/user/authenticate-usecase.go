@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -51,7 +52,7 @@ func (uc *AuthenticateUserUseCase) Execute(data *AuthenticateRequest) (*authenti
 	claims["userID"] = user.GetID().String()
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
-	tokenString, err := token.SignedString([]byte("JWT_SECRET"))
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 
 	if err != nil {
 		return nil, err
