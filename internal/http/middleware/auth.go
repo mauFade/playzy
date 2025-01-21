@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -14,12 +15,18 @@ func EnsureAuthenticatedMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			http.Error(w, "Authorization header missing", http.StatusUnauthorized)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"message": "Authorization header missing"})
+
 			return
 		}
 
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			http.Error(w, "Invalid authorization header format", http.StatusUnauthorized)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"message": "Invalid authorization header format"})
+
 			return
 		}
 
@@ -33,7 +40,10 @@ func EnsureAuthenticatedMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		})
 
 		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"message": err.Error()})
+
 			return
 		}
 
@@ -43,7 +53,10 @@ func EnsureAuthenticatedMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			userID, ok := claims["userID"].(string)
 
 			if !ok {
-				http.Error(w, "Invalid userID type in token", http.StatusUnauthorized)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusUnauthorized)
+				json.NewEncoder(w).Encode(map[string]string{"message": "Invalid userID type in token"})
+
 				return
 			}
 
@@ -51,7 +64,11 @@ func EnsureAuthenticatedMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
-			http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"message": "Invalid token claims"})
+
+			return
 		}
 	}
 }
