@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"math"
 
 	"github.com/google/uuid"
@@ -76,8 +77,12 @@ func (r *SessionRepository) FindByID(id uuid.UUID) (*model.SessionModel, error) 
 }
 
 func (r *SessionRepository) FindAvailable(page int) (*dto.SessionsPageResponse, error) {
-	query := "SELECT * FROM sessions LIMIT 20 OFFSET ($1 - 1) * 20"
+	pageQtd := 4
 
+	query := fmt.Sprintf("SELECT sessions.*, users.id AS user_id, users.name, users.email, users.gamertag FROM sessions LEFT JOIN users ON sessions.user_id = users.id WHERE users.is_deleted = 'false' LIMIT %v OFFSET ($1 - 1) * %v",
+		pageQtd, pageQtd)
+
+	fmt.Println(query)
 	rows, err := r.db.Query(query, page)
 
 	if err != nil {
@@ -92,14 +97,14 @@ func (r *SessionRepository) FindAvailable(page int) (*dto.SessionsPageResponse, 
 		return nil, err
 	}
 
-	totalPages := int(math.Ceil(float64(count) / 20))
+	totalPages := int(math.Ceil(float64(count) / float64(pageQtd)))
 
-	var sessions []model.SessionModel
+	var sessions []dto.SessionWithUser
 
 	for rows.Next() {
-		var s model.SessionModel
+		var s dto.SessionWithUser
 
-		err := rows.Scan(&s.ID, &s.Game, &s.UserID, &s.Objective, &s.Rank, &s.IsRanked, &s.CreatedAt, &s.UpdatedAt)
+		err := rows.Scan(&s.ID, &s.Game, &s.UserID, &s.Objective, &s.Rank, &s.IsRanked, &s.UpdatedAt, &s.CreatedAt, &s.UserID, &s.UserName, &s.Email, &s.UserGamertag)
 
 		if err != nil {
 			return nil, err
@@ -109,7 +114,7 @@ func (r *SessionRepository) FindAvailable(page int) (*dto.SessionsPageResponse, 
 	}
 
 	if len(sessions) == 0 {
-		sessions = []model.SessionModel{}
+		sessions = []dto.SessionWithUser{}
 	}
 
 	return &dto.SessionsPageResponse{
