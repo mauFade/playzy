@@ -3,15 +3,17 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"math"
 
 	"github.com/google/uuid"
+	"github.com/mauFade/playzy/internal/dto"
 	"github.com/mauFade/playzy/internal/model"
 )
 
 type SessionRepositoryInterface interface {
 	Create(s *model.SessionModel) error
 	FindByID(id uuid.UUID) (*model.SessionModel, error)
-	FindAvailable(page int) ([]model.SessionModel, error)
+	FindAvailable(page int) (*dto.SessionsPageResponse, error)
 }
 
 type SessionRepository struct {
@@ -73,7 +75,7 @@ func (r *SessionRepository) FindByID(id uuid.UUID) (*model.SessionModel, error) 
 	return &session, nil
 }
 
-func (r *SessionRepository) FindAvailable(page int) ([]model.SessionModel, error) {
+func (r *SessionRepository) FindAvailable(page int) (*dto.SessionsPageResponse, error) {
 	query := "SELECT * FROM sessions LIMIT 20 OFFSET ($1 - 1) * 20"
 
 	rows, err := r.db.Query(query, page)
@@ -81,6 +83,16 @@ func (r *SessionRepository) FindAvailable(page int) ([]model.SessionModel, error
 	if err != nil {
 		return nil, err
 	}
+
+	var count int
+
+	err = r.db.QueryRow("SELECT COUNT(*) FROM sessions").Scan(&count)
+
+	if err != nil {
+		return nil, err
+	}
+
+	totalPages := int(math.Ceil(float64(count) / 20))
 
 	var sessions []model.SessionModel
 
@@ -96,5 +108,13 @@ func (r *SessionRepository) FindAvailable(page int) ([]model.SessionModel, error
 		sessions = append(sessions, s)
 	}
 
-	return sessions, nil
+	if len(sessions) == 0 {
+		sessions = []model.SessionModel{}
+	}
+
+	return &dto.SessionsPageResponse{
+		Page:       page,
+		TotalPages: totalPages,
+		Sessions:   sessions,
+	}, nil
 }

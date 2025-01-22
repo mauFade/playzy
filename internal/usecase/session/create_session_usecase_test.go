@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mauFade/playzy/internal/dto"
 	"github.com/mauFade/playzy/internal/model"
 	"github.com/mauFade/playzy/internal/usecase/session"
 	"github.com/stretchr/testify/assert"
@@ -27,10 +28,10 @@ func (m *MockCreateSessionRepository) FindByID(id uuid.UUID) (*model.SessionMode
 	return args.Get(0).(*model.SessionModel), args.Error(1)
 }
 
-func (m *MockCreateSessionRepository) FindAvailable(page int) ([]model.SessionModel, error) {
+func (m *MockCreateSessionRepository) FindAvailable(page int) (*dto.SessionsPageResponse, error) {
 	args := m.Called(page)
 
-	return args.Get(0).([]model.SessionModel), args.Error(1)
+	return args.Get(0).(*dto.SessionsPageResponse), args.Error(1)
 }
 
 type MockSessionUserRepository struct {
