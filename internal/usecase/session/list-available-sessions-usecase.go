@@ -53,7 +53,7 @@ func (u *ListAvailableSessionsUseCase) Execute(data *ListAvailableSessionsReques
 		return nil, err
 	}
 
-	var resSessions []AvailableSessionsResponse
+	resSessions := []AvailableSessionsResponse{}
 
 	for _, s := range sessions.Sessions {
 		ses := AvailableSessionsResponse{

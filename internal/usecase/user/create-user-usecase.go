@@ -2,8 +2,10 @@ package user
 
 import (
 	"errors"
+	"os"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/mauFade/playzy/internal/model"
 	"github.com/mauFade/playzy/internal/repository"
@@ -22,13 +24,26 @@ type CreateUserRequest struct {
 	Gamertag string
 }
 
+type CreateUserResponse struct {
+	ID        uuid.UUID  `json:"id"`
+	Name      string     `json:"name"`
+	Email     string     `json:"email"`
+	Phone     string     `json:"phone"`
+	Gamertag  string     `json:"gamertag"`
+	Token     string     `json:"token"`
+	Deleted   bool       `json:"is_deleted"`
+	DeletedAt *time.Time `json:"deleted_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	CreatedAt time.Time  `json:"created_at"`
+}
+
 func NewCreateUserUseCase(r repository.UserRepositoryInterface) *CreateUserUseCase {
 	return &CreateUserUseCase{
 		userRepository: r,
 	}
 }
 
-func (uc *CreateUserUseCase) Execute(data *CreateUserRequest) (*model.UserModel, error) {
+func (uc *CreateUserUseCase) Execute(data *CreateUserRequest) (*CreateUserResponse, error) {
 	emailExists, err := uc.userRepository.FindByEmail(data.Email)
 
 	if err != nil {
@@ -78,11 +93,34 @@ func (uc *CreateUserUseCase) Execute(data *CreateUserRequest) (*model.UserModel,
 		time.Now(),
 	)
 
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	claims := token.Claims.(jwt.MapClaims)
+	claims["userID"] = user.GetID().String()
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+
+	if err != nil {
+		return nil, err
+	}
+
 	err = uc.userRepository.Create(user)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return &CreateUserResponse{
+		ID:        user.GetID(),
+		Name:      user.GetName(),
+		Email:     user.GetEmail(),
+		Phone:     user.GetPhone(),
+		Gamertag:  user.GetGamertag(),
+		Token:     tokenString,
+		Deleted:   user.IsDeleted(),
+		DeletedAt: user.GetDeletedAt(),
+		UpdatedAt: user.GetUpdatedAt(),
+		CreatedAt: user.GetCreatedAt(),
+	}, nil
 }

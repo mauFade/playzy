@@ -65,10 +65,10 @@ func TestCreateUserUseCaseExecuteSuccess(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
-	assert.Equal(t, "John Doe", user.GetName())
-	assert.Equal(t, "test@example.com", user.GetEmail())
-	assert.Equal(t, "1234567890", user.GetPhone())
-	assert.Equal(t, "gamer123", user.GetGamertag())
+	assert.Equal(t, "John Doe", user.Name)
+	assert.Equal(t, "test@example.com", user.Email)
+	assert.Equal(t, "1234567890", user.Phone)
+	assert.Equal(t, "gamer123", user.Gamertag)
 
 	mockRepo.AssertExpectations(t)
 }
