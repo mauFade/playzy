@@ -34,6 +34,11 @@ func (m *MockCreateSessionRepository) FindAvailable(page int) (*dto.SessionsPage
 	return args.Get(0).(*dto.SessionsPageResponse), args.Error(1)
 }
 
+func (m *MockCreateSessionRepository) Delete(id string) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
 type MockSessionUserRepository struct {
 	mock.Mock
 }

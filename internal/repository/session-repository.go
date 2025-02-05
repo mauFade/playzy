@@ -15,6 +15,7 @@ type SessionRepositoryInterface interface {
 	Create(s *model.SessionModel) error
 	FindByID(id uuid.UUID) (*model.SessionModel, error)
 	FindAvailable(page int) (*dto.SessionsPageResponse, error)
+	Delete(id string) error
 }
 
 type SessionRepository struct {
@@ -126,4 +127,10 @@ func (r *SessionRepository) FindAvailable(page int) (*dto.SessionsPageResponse, 
 		TotalPages: totalPages,
 		Sessions:   sessions,
 	}, nil
+}
+
+func (r *SessionRepository) Delete(id string) error {
+	_, err := r.db.Exec("DELETE FROM sessions WHERE id = $1", id)
+
+	return err
 }
