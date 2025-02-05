@@ -20,9 +20,13 @@ type UserRepository struct {
 }
 
 func NewUserRepository(d *sql.DB) *UserRepository {
-	return &UserRepository{
+	r := &UserRepository{
 		db: d,
 	}
+
+	r.db.Exec("CREATE TABLE IF NOT EXISTS users (id UUID PRIMARY KEY, name VARCHAR NOT NULL, email VARCHAR NOT NULL, phone VARCHAR NOT NULL, password VARCHAR NOT NULL, gamertag VARCHAR NOT NULL, is_deleted BOOLEAN NOT NULL, deleted_at TIMESTAMP NULL, updated_at TIMESTAMP NOT NULL, created_at TIMESTAMP NOT NULL)")
+
+	return r
 }
 
 func (r *UserRepository) Create(user *model.UserModel) error {

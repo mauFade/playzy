@@ -22,9 +22,13 @@ type SessionRepository struct {
 }
 
 func NewSessionRepository(d *sql.DB) *SessionRepository {
-	return &SessionRepository{
+	r := &SessionRepository{
 		db: d,
 	}
+
+	r.db.Exec("CREATE TABLE IF NOT EXISTS sessions (id UUID PRIMARY KEY, game VARCHAR NOT NULL, user_id UUID NOT NULL, objective VARCHAR NOT NULL, rank VARCHAR NULL, is_ranked BOOLEAN NOT NULL, updated_at TIMESTAMP NOT NULL, created_at TIMESTAMP NOT NULL, CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE)")
+
+	return r
 }
 
 func (r *SessionRepository) Create(s *model.SessionModel) error {
