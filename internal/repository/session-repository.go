@@ -82,7 +82,7 @@ func (r *SessionRepository) FindByID(id uuid.UUID) (*model.SessionModel, error) 
 }
 
 func (r *SessionRepository) FindAvailable(page int) (*dto.SessionsPageResponse, error) {
-	pageQtd := 4
+	pageQtd := 6
 
 	query := fmt.Sprintf("SELECT sessions.*, users.id AS user_id, users.name, users.email, users.gamertag FROM sessions LEFT JOIN users ON sessions.user_id = users.id WHERE users.is_deleted = 'false' LIMIT %v OFFSET ($1 - 1) * %v",
 		pageQtd, pageQtd)
