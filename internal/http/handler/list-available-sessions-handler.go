@@ -3,7 +3,6 @@ package handler
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -25,9 +24,11 @@ func (h *ListAvailableSessionsHandler) Handle(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 
 	page := r.URL.Query().Get("page")
+	rank := r.URL.Query().Get("rank")
+	game := r.URL.Query().Get("game")
+
 	pNum, err := strconv.Atoi(page)
 
-	fmt.Println(page, pNum)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"message": err.Error()})
@@ -41,6 +42,8 @@ func (h *ListAvailableSessionsHandler) Handle(w http.ResponseWriter, r *http.Req
 
 	resp, err := uc.Execute(&session.ListAvailableSessionsRequest{
 		Page: pNum,
+		Game: game,
+		Rank: rank,
 	})
 
 	if err != nil {

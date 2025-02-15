@@ -28,7 +28,7 @@ func (m *MockCreateSessionRepository) FindByID(id uuid.UUID) (*model.SessionMode
 	return args.Get(0).(*model.SessionModel), args.Error(1)
 }
 
-func (m *MockCreateSessionRepository) FindAvailable(page int) (*dto.SessionsPageResponse, error) {
+func (m *MockCreateSessionRepository) FindAvailable(page int, rank, game string) (*dto.SessionsPageResponse, error) {
 	args := m.Called(page)
 
 	return args.Get(0).(*dto.SessionsPageResponse), args.Error(1)

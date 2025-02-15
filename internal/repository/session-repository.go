@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/mauFade/playzy/internal/dto"
@@ -14,7 +15,7 @@ import (
 type SessionRepositoryInterface interface {
 	Create(s *model.SessionModel) error
 	FindByID(id uuid.UUID) (*model.SessionModel, error)
-	FindAvailable(page int) (*dto.SessionsPageResponse, error)
+	FindAvailable(page int, rank, game string) (*dto.SessionsPageResponse, error)
 	Delete(id string) error
 }
 
@@ -81,13 +82,24 @@ func (r *SessionRepository) FindByID(id uuid.UUID) (*model.SessionModel, error) 
 	return &session, nil
 }
 
-func (r *SessionRepository) FindAvailable(page int) (*dto.SessionsPageResponse, error) {
+func (r *SessionRepository) FindAvailable(page int, rank, game string) (*dto.SessionsPageResponse, error) {
 	pageQtd := 6
 
-	query := fmt.Sprintf("SELECT sessions.*, users.id AS user_id, users.name, users.email, users.gamertag FROM sessions LEFT JOIN users ON sessions.user_id = users.id WHERE users.is_deleted = 'false' LIMIT %v OFFSET ($1 - 1) * %v",
-		pageQtd, pageQtd)
+	rankQuery := ""
+	gameQuery := ""
 
-	fmt.Println(query)
+	if rank != "" {
+		rankQuery = "AND LOWER(sessions.rank) = '" + strings.ToLower(rank) + "'"
+	}
+
+	if game != "" {
+		gameQuery = "AND LOWER(sessions.game) LIKE '%" + strings.ToLower(game) + "%'"
+	}
+
+	query := fmt.Sprintf("SELECT sessions.*, users.id AS user_id, users.name, users.email, users.gamertag FROM sessions LEFT JOIN users ON sessions.user_id = users.id WHERE users.is_deleted = 'false' %s %s LIMIT %v OFFSET ($1 - 1) * %v",
+		rankQuery, gameQuery, pageQtd, pageQtd)
+
+	fmt.Println("\n\n", query)
 	rows, err := r.db.Query(query, page)
 
 	if err != nil {

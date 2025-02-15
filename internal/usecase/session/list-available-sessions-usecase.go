@@ -13,6 +13,8 @@ type ListAvailableSessionsUseCase struct {
 
 type ListAvailableSessionsRequest struct {
 	Page int
+	Game string
+	Rank string
 }
 
 type UserData struct {
@@ -47,7 +49,7 @@ func NewListAvailableSessionsUseCase(s repository.SessionRepositoryInterface) *L
 }
 
 func (u *ListAvailableSessionsUseCase) Execute(data *ListAvailableSessionsRequest) (*SessionsPageResponse, error) {
-	sessions, err := u.sr.FindAvailable(data.Page)
+	sessions, err := u.sr.FindAvailable(data.Page, data.Rank, data.Game)
 
 	if err != nil {
 		return nil, err
