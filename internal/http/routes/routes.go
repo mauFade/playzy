@@ -6,6 +6,7 @@ import (
 
 	"github.com/mauFade/playzy/internal/http/handler"
 	"github.com/mauFade/playzy/internal/http/middleware"
+	"github.com/mauFade/playzy/internal/repository"
 	"github.com/mauFade/playzy/internal/websocket"
 )
 
@@ -25,9 +26,10 @@ func Router(db *sql.DB) *http.ServeMux {
 	authHandler := handler.NewAuthenticateUserHandler(db)
 
 	createSessionHandler := handler.NewCreateSessionHandler(db)
-	listSessionsHanlder := handler.NewListAvailableSessionsHandler(db)
+	listSessionsHandler := handler.NewListAvailableSessionsHandler(db)
 
-	wsManager := websocket.NewManager()
+	messageRepo := repository.NewMessageRepository(db)
+	wsManager := websocket.NewManager(db, messageRepo)
 	go wsManager.Start()
 
 	router := http.NewServeMux()
@@ -36,9 +38,10 @@ func Router(db *sql.DB) *http.ServeMux {
 	router.HandleFunc("POST /auth", middleware.LoggerMiddleware(authHandler.Handle))
 
 	router.HandleFunc("POST /sessions", CommonMiddlewares(createSessionHandler.Handle))
-	router.HandleFunc("GET /sessions", CommonMiddlewares(listSessionsHanlder.Handle))
+	router.HandleFunc("GET /sessions", CommonMiddlewares(listSessionsHandler.Handle))
 
 	router.HandleFunc("GET /ws", middleware.LoggerMiddleware(wsManager.ServeWs))
+	router.HandleFunc("GET /conversations", CommonMiddlewares(wsManager.GetConversationHandler))
 
 	return router
 }
