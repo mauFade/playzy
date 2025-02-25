@@ -34,5 +34,9 @@ func Router(db *sql.DB) *http.ServeMux {
 	router.HandleFunc("POST /sessions", CommonMiddlewares(createSessionHandler.Handle))
 	router.HandleFunc("GET /sessions", CommonMiddlewares(listSessionsHanlder.Handle))
 
+	router.HandleFunc("GET /ws", middleware.LoggerMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		//
+	}))
+
 	return router
 }
