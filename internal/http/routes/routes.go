@@ -27,6 +27,9 @@ func Router(db *sql.DB) *http.ServeMux {
 	createSessionHandler := handler.NewCreateSessionHandler(db)
 	listSessionsHanlder := handler.NewListAvailableSessionsHandler(db)
 
+	wsManager := websocket.NewManager()
+	go wsManager.Start()
+
 	router := http.NewServeMux()
 
 	router.HandleFunc("POST /users", middleware.LoggerMiddleware(createUserHandler.Handle))
@@ -35,7 +38,7 @@ func Router(db *sql.DB) *http.ServeMux {
 	router.HandleFunc("POST /sessions", CommonMiddlewares(createSessionHandler.Handle))
 	router.HandleFunc("GET /sessions", CommonMiddlewares(listSessionsHanlder.Handle))
 
-	router.HandleFunc("GET /ws", websocket.HandleWebSocket)
+	router.HandleFunc("GET /ws", middleware.LoggerMiddleware(wsManager.ServeWs))
 
 	return router
 }
