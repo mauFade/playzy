@@ -43,5 +43,8 @@ func Router(db *sql.DB) *http.ServeMux {
 	router.HandleFunc("GET /ws", middleware.LoggerMiddleware(wsManager.ServeWs))
 	router.HandleFunc("GET /conversations", CommonMiddlewares(wsManager.GetConversationHandler))
 
+	listUsersMessagesHandler := handler.NewListUsersMessagesHandler(db)
+	router.HandleFunc("GET /messages", CommonMiddlewares(listUsersMessagesHandler.Handle))
+
 	return router
 }
