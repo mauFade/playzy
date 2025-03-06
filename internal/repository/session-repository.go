@@ -99,7 +99,6 @@ func (r *SessionRepository) FindAvailable(page int, rank, game string) (*dto.Ses
 	query := fmt.Sprintf("SELECT sessions.*, users.id AS user_id, users.name, users.email, users.gamertag FROM sessions LEFT JOIN users ON sessions.user_id = users.id WHERE users.is_deleted = 'false' %s %s LIMIT %v OFFSET ($1 - 1) * %v",
 		rankQuery, gameQuery, pageQtd, pageQtd)
 
-	fmt.Println("\n\n", query)
 	rows, err := r.db.Query(query, page)
 
 	if err != nil {

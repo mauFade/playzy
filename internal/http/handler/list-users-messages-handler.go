@@ -3,12 +3,13 @@ package handler
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/mauFade/playzy/internal/constants"
+	"github.com/mauFade/playzy/internal/repository"
+	"github.com/mauFade/playzy/internal/usecase/message"
 )
 
 type ListUsersMessagesHandler struct {
@@ -34,7 +35,6 @@ func NewListUsersMessagesHandler(d *sql.DB) *ListUsersMessagesHandler {
 func (h *ListUsersMessagesHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// Obtém os IDs dos usuários da query
 	userID := r.Context().Value(constants.UserKey).(string)
 	otherUserID := r.URL.Query().Get("otherUserID")
 
@@ -59,48 +59,20 @@ func (h *ListUsersMessagesHandler) Handle(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	// Consulta SQL para buscar mensagens entre os dois usuários
-	query := `
-		SELECT id, content, user_id, receiver_id, created_at, is_read
-		FROM messages
-		WHERE (user_id = $1 AND receiver_id = $2) OR (user_id = $2 AND receiver_id = $1)
-		ORDER BY created_at DESC
-		LIMIT $3 OFFSET $4
-	`
+	mr := repository.NewMessageRepository(h.db)
+	uc := message.NewListUsersMessagesUseCase(mr)
 
-	rows, err := h.db.Query(query, userID, otherUserID, limit, offset)
+	messages, err := uc.Execute(&message.ListUsersMessagesRequest{
+		UserID:      userID,
+		OtherUserID: otherUserID,
+		Limit:       limit,
+		Offset:      offset,
+	})
+
 	if err != nil {
-		log.Printf("Erro ao buscar mensagens: %v", err)
-		http.Error(w, "Erro ao buscar mensagens", http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"message": err.Error()})
 
-	// Processar as mensagens
-	var messages []MessageResponse
-	for rows.Next() {
-		var msg MessageResponse
-		var userIDStr, receiverIDStr string
-
-		err := rows.Scan(&msg.ID, &msg.Content, &userIDStr, &receiverIDStr, &msg.Timestamp, &msg.IsRead)
-		if err != nil {
-			log.Printf("Erro ao escanear mensagem: %v", err)
-			continue
-		}
-
-		msg.SenderID = userIDStr
-		msg.ReceiverID = receiverIDStr
-
-		// Determina se a mensagem é do usuário atual
-		msg.IsMine = (userIDStr == userID)
-
-		messages = append(messages, msg)
-	}
-
-	// Verificar se houve erro na iteração
-	if err = rows.Err(); err != nil {
-		log.Printf("Erro ao iterar mensagens: %v", err)
-		http.Error(w, "Erro ao processar mensagens", http.StatusInternalServerError)
 		return
 	}
 
@@ -109,19 +81,6 @@ func (h *ListUsersMessagesHandler) Handle(w http.ResponseWriter, r *http.Request
 		messages[i], messages[j] = messages[j], messages[i]
 	}
 
-	// Atualizar mensagens como lidas (se o usuário for o destinatário)
-	go func() {
-		_, err := h.db.Exec(`
-			UPDATE messages
-			SET is_read = true
-			WHERE receiver_id = $1 AND user_id = $2 AND is_read = false
-		`, userID, otherUserID)
-
-		if err != nil {
-			log.Printf("Erro ao marcar mensagens como lidas: %v", err)
-		}
-	}()
-
-	// Retornar as mensagens como JSON
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(messages)
 }
