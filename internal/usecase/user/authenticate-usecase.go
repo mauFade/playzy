@@ -21,6 +21,8 @@ type AuthenticateRequest struct {
 type authenticateResponse struct {
 	UserID string `json:"user_id"`
 	Token  string `json:"token"`
+	Name 	 string `json:"name"`
+	Email  string `json:"email"`
 }
 
 func NewAuthenticateUserUseCase(r repository.UserRepositoryInterface) *AuthenticateUserUseCase {
@@ -61,5 +63,7 @@ func (uc *AuthenticateUserUseCase) Execute(data *AuthenticateRequest) (*authenti
 	return &authenticateResponse{
 		UserID: user.GetID().String(),
 		Token:  tokenString,
+		Name: 	user.GetName(),
+		Email: 	user.GetEmail(),
 	}, nil
 }
