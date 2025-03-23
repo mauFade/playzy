@@ -19,10 +19,13 @@ type AuthenticateRequest struct {
 }
 
 type authenticateResponse struct {
-	UserID string `json:"user_id"`
-	Token  string `json:"token"`
-	Name 	 string `json:"name"`
-	Email  string `json:"email"`
+	UserID   string `json:"user_id"`
+	Token    string `json:"token"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Gamertag string `json:"gamertag"`
+	Phone    string `json:"phone"`
+	Avatar   string `json:"avatar"`
 }
 
 func NewAuthenticateUserUseCase(r repository.UserRepositoryInterface) *AuthenticateUserUseCase {
@@ -61,9 +64,12 @@ func (uc *AuthenticateUserUseCase) Execute(data *AuthenticateRequest) (*authenti
 	}
 
 	return &authenticateResponse{
-		UserID: user.GetID().String(),
-		Token:  tokenString,
-		Name: 	user.GetName(),
-		Email: 	user.GetEmail(),
+		UserID:   user.GetID().String(),
+		Token:    tokenString,
+		Name:     user.GetName(),
+		Email:    user.GetEmail(),
+		Gamertag: user.GetGamertag(),
+		Phone:    user.GetPhone(),
+		Avatar:   "https://i.pinimg.com/736x/93/13/4b/93134b183c46201053495d49f953be58.jpg",
 	}, nil
 }
