@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/mauFade/playzy/internal/constants"
 	"github.com/mauFade/playzy/internal/model"
 )
@@ -18,35 +19,83 @@ func (m *Manager) ServeWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Rate limiting check
+	m.mutex.Lock()
+	if lastConnection, exists := m.rateLimiter[userID]; exists {
+		if time.Since(lastConnection) < time.Second {
+			m.mutex.Unlock()
+			http.Error(w, "Too many connection attempts", http.StatusTooManyRequests)
+			return
+		}
+	}
+	m.rateLimiter[userID] = time.Now()
+	m.mutex.Unlock()
+
+	// Check for existing connection
 	m.mutex.Lock()
 	if existingClient, ok := m.clients[userID]; ok {
-		// Desconectar cliente existente para permitir a nova conexão
+		// Gracefully close existing connection
+		existingClient.conn.WriteControl(
+			websocket.CloseMessage,
+			websocket.FormatCloseMessage(websocket.CloseNormalClosure, "New connection"),
+			time.Now().Add(time.Second),
+		)
 		existingClient.conn.Close()
 		delete(m.clients, userID)
 	}
 	m.mutex.Unlock()
 
+	// Upgrade connection with custom headers
+	header := http.Header{}
+	header.Add("X-User-ID", userID)
+
 	// Fazer upgrade da conexão HTTP para WebSocket
-	conn, err := upgrader.Upgrade(w, r, nil)
+	conn, err := upgrader.Upgrade(w, r, header)
 	if err != nil {
 		log.Printf("Erro ao fazer upgrade para WebSocket: %v", err)
 		return
 	}
 
-	// Criar um novo cliente
+	// Create new client with enhanced configuration
 	client := &Client{
-		manager: m,
-		conn:    conn,
-		send:    make(chan model.Message, 256),
-		userID:  userID,
+		manager:  m,
+		conn:     conn,
+		send:     make(chan model.Message, 256),
+		userID:   userID,
+		isAlive:  true,
+		lastPing: time.Now(),
 	}
 
-	// Registrar o cliente
-	m.register <- client
+	// Register client
+	select {
+	case m.register <- client:
+		// Client registered successfully
+		log.Printf("New client connected: %s", userID)
+	default:
+		// Registration channel is full
+		conn.Close()
+		http.Error(w, "Server is at capacity", http.StatusServiceUnavailable)
+		return
+	}
 
-	// Iniciar goroutines para leitura e escrita
-	go client.WritePump()
-	go client.ReadPump()
+	// Start goroutines for reading and writing
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("Recovered from panic in client goroutines: %v", r)
+			}
+		}()
+		client.WritePump()
+	}()
+
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("Recovered from panic in client goroutines: %v", r)
+			}
+		}()
+		client.ReadPump()
+	}()
 }
 
 func (m *Manager) GetConversationHandler(w http.ResponseWriter, r *http.Request) {

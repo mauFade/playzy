@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/mauFade/playzy/internal/model"
@@ -17,22 +18,11 @@ type Manager struct {
 	broadcast  chan model.Message
 	register   chan *Client
 	unregister chan *Client
-	mutex      sync.Mutex
+	mutex      sync.RWMutex
 	db         *sql.DB
 	repository repository.MessageRepositoryInterface
-}
 
-// NewManager cria um novo gerenciador
-func NewManager(db *sql.DB, repo repository.MessageRepositoryInterface) *Manager {
-	return &Manager{
-		clients:    make(map[string]*Client),
-		broadcast:  make(chan model.Message),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-		mutex:      sync.Mutex{},
-		db:         db,
-		repository: repo,
-	}
+	rateLimiter map[string]time.Time
 }
 
 // Configuração do upgrader
@@ -40,8 +30,32 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		return true
+		// TODO: Replace with your actual origin checking logic
+		origin := r.Header.Get("Origin")
+		allowedOrigins := []string{"http://localhost:3000", "https://yourdomain.com"}
+		for _, allowed := range allowedOrigins {
+			if origin == allowed {
+				return true
+			}
+		}
+		return false
 	},
+	// Add handshake timeout
+	HandshakeTimeout: 10 * time.Second,
+}
+
+// NewManager cria um novo gerenciador
+func NewManager(db *sql.DB, repo repository.MessageRepositoryInterface) *Manager {
+	return &Manager{
+		clients:     make(map[string]*Client),
+		broadcast:   make(chan model.Message, 1000), // Increased buffer size
+		register:    make(chan *Client, 100),
+		unregister:  make(chan *Client, 100),
+		mutex:       sync.RWMutex{},
+		db:          db,
+		repository:  repo,
+		rateLimiter: make(map[string]time.Time),
+	}
 }
 
 // Start inicia o gerenciador em uma goroutine separada
